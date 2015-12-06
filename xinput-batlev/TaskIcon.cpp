@@ -22,6 +22,11 @@ TaskIcon::TaskIcon()
     menu_ = CreatePopupMenu();
     if (!menu_) CheckLastError();
 
+    MENUINFO menuinfo = { sizeof(menuinfo) };
+    menuinfo.fMask = MIM_STYLE;
+    menuinfo.dwStyle = MNS_AUTODISMISS;
+    SetMenuInfo(menu_, &menuinfo);
+
     InsertMenuW(menu_, 0, MF_BYPOSITION, id_exit, L"Exit");
 
     CheckHR(DWriteCreateFactory(
@@ -117,11 +122,19 @@ LRESULT TaskIcon::WndProc(UINT msg, WPARAM wparam, LPARAM lparam)
         }
         case WM_TASKICON:
         {
-            if (LOWORD(lparam) == WM_LBUTTONUP || LOWORD(lparam) == WM_RBUTTONUP)
+            if (LOWORD(lparam) == WM_RBUTTONUP)
             {
                 POINT cpos;
                 GetCursorPos(&cpos);
-                TrackPopupMenu(menu_, TPM_BOTTOMALIGN | TPM_LEFTALIGN, cpos.x, cpos.y, 0, hwnd_, nullptr);
+
+                SetForegroundWindow(hwnd_);
+                TrackPopupMenuEx(
+                    menu_,
+                    TPM_BOTTOMALIGN | TPM_LEFTALIGN,
+                    cpos.x, cpos.y,
+                    hwnd_,
+                    nullptr
+                    );
             }
             return 0;
         }
