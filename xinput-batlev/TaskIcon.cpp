@@ -76,6 +76,9 @@ void TaskIcon::MessageLoop()
     // Recheck once every 5 seconds
     SetTimer(hwnd_, icon_id, 5 * 1000, nullptr);
 
+    // Initial update
+    UpdateIcon();
+
     MSG msg;
     while (GetMessageW(&msg, hwnd_, 0, 0))
     {
