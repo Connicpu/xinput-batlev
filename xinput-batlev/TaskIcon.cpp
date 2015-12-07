@@ -162,13 +162,14 @@ void TaskIcon::UpdateIcon()
         info.BatteryType = BATTERY_TYPE_DISCONNECTED;
     }
 
-    wchar_t *tip_ = L"";
+    const wchar_t *tip = icon_label;
     switch (info.BatteryType)
     {
         case BATTERY_TYPE_WIRED:
             batlevel_ = 1;
             nocontroller_ = false;
             unknown_ = false;
+            tip = L"Wired Controller";
             break;
 
         case BATTERY_TYPE_ALKALINE:
@@ -177,19 +178,19 @@ void TaskIcon::UpdateIcon()
             {
                 case BATTERY_LEVEL_EMPTY:
                     batlevel_ = 0;
-                    tip_ = L"Controller battery is empty";
+                    tip = L"Controller battery is empty";
                     break;
                 case BATTERY_LEVEL_LOW:
                     batlevel_ = 0.3f;
-                    tip_ = L"Controller battery is getting low";
+                    tip = L"Controller battery is getting low";
                     break;
                 case BATTERY_LEVEL_MEDIUM:
                     batlevel_ = 0.6f;
-                    tip_ = L"Controller battery is OK";
+                    tip = L"Controller battery is OK";
                     break;
                 case BATTERY_LEVEL_FULL:
                     batlevel_ = 1;
-                    tip_ = L"Controller battery is full";
+                    tip = L"Controller battery is full";
                     break;
             }
             nocontroller_ = false;
@@ -200,14 +201,14 @@ void TaskIcon::UpdateIcon()
             batlevel_ = 0;
             nocontroller_ = false;
             unknown_ = true;
-            tip_ = L"Battery level couldn't be read";
+            tip = L"Battery level couldn't be read";
 
         case BATTERY_TYPE_DISCONNECTED:
         default:
             batlevel_ = 0;
             nocontroller_ = true;
             unknown_ = false;
-            tip_ = L"No controller connected";
+            tip = L"No controller connected";
             break;
     }
 
@@ -217,7 +218,7 @@ void TaskIcon::UpdateIcon()
     idata.uID = icon_id;
     idata.hIcon = MakeIcon(true);
     idata.uFlags = NIF_ICON | NIF_TIP;
-    swprintf_s(idata.szTip, tip_);
+    wcscpy_s(idata.szTip, tip);
     
     Shell_NotifyIconW(NIM_MODIFY, &idata);
 }
