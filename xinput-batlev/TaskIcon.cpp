@@ -264,7 +264,7 @@ HICON TaskIcon::MakeIcon(bool redraw)
         if (nocontroller_)
         {
             ComPtr<ID2D1SolidColorBrush> errbrush;
-            CheckHR(target->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Red), &errbrush));
+            CheckHR(target->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Black), &errbrush));
             auto center = D2D1::Point2F(16, size.height / 2 + 16);
             auto radiusx = std::sqrtf(2) * 7;
             auto tl = D2D1::Point2F(center.x - radiusx, center.y - radiusx);
