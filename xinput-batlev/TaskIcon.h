@@ -27,6 +27,7 @@ private:
 
     ComPtr<IDWriteFactory> dwrite_;
     ComPtr<IDWriteTextFormat> font_;
+    ComPtr<IDWriteTextFormat> big_font_;
 
     HWND hwnd_ = nullptr;
     HMENU menu_ = nullptr;
@@ -34,5 +35,6 @@ private:
     float batlevel_ = 0;
     bool nocontroller_ = true;
     bool unknown_ = false;
+    bool wired_ = false;
     std::atomic<bool> stop_ = false;
 };

@@ -10,7 +10,7 @@ static const wchar_t icon_emoji[] = L"🎮";
 static std::atomic<size_t> task_refcount = 0;
 
 TaskIcon::TaskIcon()
-    : icon_(128, 128, 2)
+    : icon_(256, 256, 4)
 {
     RegClass();
     hwnd_ = CreateWindowExW(
@@ -45,6 +45,19 @@ TaskIcon::TaskIcon()
         L"en-US",
         &font_
         ));
+
+    CheckHR(dwrite_->CreateTextFormat(
+        L"Segoe UI Emoji",
+        nullptr,
+        DWRITE_FONT_WEIGHT_NORMAL,
+        DWRITE_FONT_STYLE_NORMAL,
+        DWRITE_FONT_STRETCH_NORMAL,
+        60,
+        L"en-US",
+        &big_font_
+        ));
+    CheckHR(big_font_->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER));
+    CheckHR(big_font_->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER));
 
     NOTIFYICONDATAW idata = { sizeof(idata) };
     idata.hWnd = hwnd_;
@@ -163,12 +176,14 @@ void TaskIcon::UpdateIcon()
     }
 
     const wchar_t *tip = icon_label;
+    wired_ = false;
     switch (info.BatteryType)
     {
         case BATTERY_TYPE_WIRED:
             batlevel_ = 1;
             nocontroller_ = false;
             unknown_ = false;
+            wired_ = true;
             tip = L"Wired Controller";
             break;
 
@@ -208,10 +223,10 @@ void TaskIcon::UpdateIcon()
             batlevel_ = 0;
             nocontroller_ = true;
             unknown_ = false;
+            wired_ = true;
             tip = L"No controller connected";
             break;
     }
-
 
     NOTIFYICONDATAW idata = { sizeof(idata) };
     idata.hWnd = hwnd_;
@@ -231,35 +246,53 @@ HICON TaskIcon::MakeIcon(bool redraw)
         ComPtr<ID2D1RenderTarget> target;
         icon_.Lock(&target);
 
+        auto size = target->GetSize();
         target->BeginDraw();
         target->Clear();
-
-        auto size = target->GetSize();
-        auto batrect = D2D1::RectF(5, size.height / 2 - 16, size.width - 8, size.height / 2 + 16);
-        auto posend = D2D1::RectF(size.width - 8, size.height / 2 - 8, size.width, size.height / 2 + 8);
-        auto fillrect = D2D1::RectF(batrect.left + 5, batrect.top + 5, batrect.right - 5, batrect.bottom - 5);
-        fillrect.right = (1 - batlevel_) * fillrect.left + batlevel_ * fillrect.right;
 
         ComPtr<ID2D1SolidColorBrush> brush;
         CheckHR(target->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White), &brush));
 
-        target->DrawRectangle(batrect, brush, 5);
-        target->FillRectangle(posend, brush);
-        target->FillRectangle(fillrect, brush);
+        if (wired_)
+        {
+            target->DrawText(
+                icon_emoji,
+                ARRAYSIZE(icon_emoji) - 1,
+                big_font_,
+                D2D1::RectF(
+                    0, 0,
+                    size.width,
+                    size.height
+                    ),
+                brush,
+                D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT
+                );
+        }
+        else
+        {
+            auto batrect = D2D1::RectF(5, size.height / 2 - 16, size.width - 8, size.height / 2 + 16);
+            auto posend = D2D1::RectF(size.width - 8, size.height / 2 - 8, size.width, size.height / 2 + 8);
+            auto fillrect = D2D1::RectF(batrect.left + 5, batrect.top + 5, batrect.right - 5, batrect.bottom - 5);
+            fillrect.right = (1 - batlevel_) * fillrect.left + batlevel_ * fillrect.right;
 
-        target->DrawText(
-            icon_emoji,
-            ARRAYSIZE(icon_emoji) - 1,
-            font_,
-            D2D1::RectF(
-                size.width / 3,
-                size.height / 4.f,
-                size.width,
-                size.height
-                ),
-            brush,
-            D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT
-            );
+            target->DrawRectangle(batrect, brush, 5);
+            target->FillRectangle(posend, brush);
+            target->FillRectangle(fillrect, brush);
+
+            target->DrawText(
+                icon_emoji,
+                ARRAYSIZE(icon_emoji) - 1,
+                font_,
+                D2D1::RectF(
+                    size.width / 3,
+                    size.height / 4.f,
+                    size.width,
+                    size.height
+                    ),
+                brush,
+                D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT
+                );
+        }
 
         if (nocontroller_)
         {
