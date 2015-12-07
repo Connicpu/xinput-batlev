@@ -169,6 +169,11 @@ LRESULT TaskIcon::WndProc(UINT msg, WPARAM wparam, LPARAM lparam)
 
 void TaskIcon::UpdateIcon()
 {
+    // Dummy call to ensure the system activates the controller
+    XINPUT_STATE state;
+    XInputGetState(0, &state);
+
+    // Get the actual battery info
     XINPUT_BATTERY_INFORMATION info;
     if (XInputGetBatteryInformation(0, BATTERY_DEVTYPE_GAMEPAD, &info) != ERROR_SUCCESS)
     {
