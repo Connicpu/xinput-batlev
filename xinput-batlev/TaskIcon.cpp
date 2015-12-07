@@ -162,6 +162,7 @@ void TaskIcon::UpdateIcon()
         info.BatteryType = BATTERY_TYPE_DISCONNECTED;
     }
 
+    wchar_t *tip_ = L"";
     switch (info.BatteryType)
     {
         case BATTERY_TYPE_WIRED:
@@ -176,15 +177,19 @@ void TaskIcon::UpdateIcon()
             {
                 case BATTERY_LEVEL_EMPTY:
                     batlevel_ = 0;
+                    tip_ = L"Controller battery is empty";
                     break;
                 case BATTERY_LEVEL_LOW:
                     batlevel_ = 0.3f;
+                    tip_ = L"Controller battery is getting low";
                     break;
                 case BATTERY_LEVEL_MEDIUM:
                     batlevel_ = 0.6f;
+                    tip_ = L"Controller battery is OK";
                     break;
                 case BATTERY_LEVEL_FULL:
                     batlevel_ = 1;
+                    tip_ = L"Controller battery is full";
                     break;
             }
             nocontroller_ = false;
@@ -195,20 +200,25 @@ void TaskIcon::UpdateIcon()
             batlevel_ = 0;
             nocontroller_ = false;
             unknown_ = true;
+            tip_ = L"Battery level couldn't be read";
 
         case BATTERY_TYPE_DISCONNECTED:
         default:
             batlevel_ = 0;
             nocontroller_ = true;
             unknown_ = false;
+            tip_ = L"No controller connected";
             break;
     }
+
 
     NOTIFYICONDATAW idata = { sizeof(idata) };
     idata.hWnd = hwnd_;
     idata.uID = icon_id;
     idata.hIcon = MakeIcon(true);
-    idata.uFlags = NIF_ICON;
+    idata.uFlags = NIF_ICON | NIF_TIP;
+    swprintf_s(idata.szTip, tip_);
+    
     Shell_NotifyIconW(NIM_MODIFY, &idata);
 }
 
